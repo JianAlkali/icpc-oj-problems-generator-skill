@@ -1,0 +1,86 @@
+{
+  "title": "通信题 - 三份数字纠错",
+  "tags": [
+    "通信题",
+    "字符串",
+    "构造",
+    "测试题"
+  ],
+  "difficulty": 800,
+  "time_limit_s": 1,
+  "memory_limit_mb": 256,
+  "visible_sample_count": 2,
+  "judge_mode": "protocol",
+  "checker_type": "token",
+  "checker_source": "",
+  "interactor_source": "",
+  "mediator_source": "#include <bits/stdc++.h>\nusing namespace std;\n\nstatic string compact_digits(istream& in) {\n    string s, token;\n    while (in >> token) s += token;\n    return s;\n}\n\nint main(int argc, char** argv) {\n    if (argc < 4) return 2;\n    ifstream input(argv[1]), first(argv[2]);\n    int mode, n;\n    if (!(input >> mode >> n)) return 2;\n    string s = compact_digits(first);\n    if (s.empty() || s.size() > 6) return 1;\n    for (char c : s) if (!isdigit((unsigned char)c)) return 1;\n\n    random_device rd;\n    mt19937 rng(rd() ^ chrono::steady_clock::now().time_since_epoch().count());\n    uniform_int_distribution<int> pos_dist(0, (int)s.size() - 1);\n    uniform_int_distribution<int> digit_dist(0, 9);\n    int pos = pos_dist(rng);\n    char old = s[pos];\n    char neu = char('0' + digit_dist(rng));\n    if (s.size() > 1) {\n        for (int guard = 0; guard < 8 && neu == old; ++guard) neu = char('0' + digit_dist(rng));\n    }\n    s[pos] = neu;\n\n    cout << 2 << ' ' << s << '\\n';\n    return 0;\n}\n",
+  "description": "## 题目描述\n这是一个两阶段协议题。\n\n第一次运行时，输入为：\n\n```text\n1 n\n```\n\n你需要输出一个长度不超过 `6` 的数字串，仅包含字符 `0..9`。中间件会检查该输出是否合法，并随机把其中一位替换成一个随机数字。\n\n第二次运行时，输入为：\n\n```text\n2 s\n```\n\n其中 `s` 是中间件修改后的数字串。你需要输出原来的 `n`。\n\n## 数据范围\n$10 \\le n \\le 99$\n\n## 提示\n一种测试正解：第一次输出三份 `n`，例如 `n=35` 输出 `353535`；第二次统计所有两位数出现次数，出现至少两次的数就是答案。\n\n### 通信过程示例\n1. 你的程序被第一次运行，得到输入`1 35`，你的程序输出`353535`。\n2. 中间件判断你的输出合法，修改你的输出为`393535`。\n3. 你的程序被第二次运行，得到输入`2 393535`，你的程序输出`35`，判断器判断你的输出合法，AC。",
+  "cases": [
+    {
+      "input": "1 35\n",
+      "output": "35\n",
+      "id": 658
+    },
+    {
+      "input": "1 10\n",
+      "output": "10\n",
+      "id": 659
+    },
+    {
+      "input": "1 35\n",
+      "output": "35\n",
+      "id": 660
+    },
+    {
+      "input": "1 42\n",
+      "output": "42\n",
+      "id": 661
+    },
+    {
+      "input": "1 88\n",
+      "output": "88\n",
+      "id": 662
+    },
+    {
+      "input": "1 99\n",
+      "output": "99\n",
+      "id": 663
+    },
+    {
+      "input": "1 77\n",
+      "output": "77\n",
+      "id": 664
+    },
+    {
+      "input": "1 20\n",
+      "output": "20\n",
+      "id": 665
+    },
+    {
+      "input": "1 90\n",
+      "output": "90\n",
+      "id": 666
+    },
+    {
+      "input": "1 19\n",
+      "output": "19\n",
+      "id": 667
+    },
+    {
+      "input": "1 91\n",
+      "output": "91",
+      "id": 668
+    },
+    {
+      "input": "1 11\n",
+      "output": "11\n",
+      "id": 669
+    },
+    {
+      "input": "1 11\n",
+      "output": "11\n",
+      "id": 670
+    }
+  ]
+}

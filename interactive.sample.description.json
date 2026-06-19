@@ -1,0 +1,52 @@
+{
+  "title": "交互题 - 猜隐藏数字",
+  "tags": [
+    "交互题",
+    "基础算法",
+    "模拟",
+    "二分",
+    "测试题"
+  ],
+  "difficulty": 800,
+  "time_limit_s": 2,
+  "memory_limit_mb": 256,
+  "visible_sample_count": 2,
+  "judge_mode": "interactive",
+  "checker_type": "token",
+  "checker_source": "",
+  "interactor_source": "#include <bits/stdc++.h>\nusing namespace std;\n\nstatic string json_escape(const string& s) {\n    string out;\n    for (char c : s) {\n        if (c == '\"' || c == '\\\\') out += '\\\\', out += c;\n        else if (c == '\\n') out += \"\\\\n\";\n        else out += c;\n    }\n    return out;\n}\n\nstatic void verdict(const string& status, const string& detail) {\n    const char* path = getenv(\"ALKALIBASE_VERDICT_FILE\");\n    ofstream out(path ? path : \"/tmp/alkalibase-missing-verdict.json\");\n    out << \"{\\\"status\\\":\\\"\" << status << \"\\\",\\\"detail\\\":\\\"\" << json_escape(detail) << \"\\\"}\";\n}\n\nint main(int argc, char** argv) {\n    if (argc < 3) return 2;\n    ifstream input(argv[1]), answer(argv[2]);\n    long long l, r, x;\n    if (!(input >> l >> r)) return 2;\n    if (!(answer >> x)) return 2;\n    cout << l << ' ' << r << endl;\n    int queries = 0;\n    string op;\n    while (cin >> op) {\n        long long y;\n        if (!(cin >> y)) {\n            verdict(\"WA\", \"missing value\");\n            return 0;\n        }\n        if (op == \"?\") {\n            ++queries;\n            if (queries > 100) {\n                verdict(\"WA\", \"too many queries\");\n                return 0;\n            }\n            if (x > y) cout << -1 << endl;\n            else if (x == y) cout << 0 << endl;\n            else cout << 1 << endl;\n        } else if (op == \"!\") {\n            verdict(y == x ? \"AC\" : \"WA\", y == x ? \"ok\" : \"wrong answer\");\n            return 0;\n        } else {\n            verdict(\"WA\", \"unknown command\");\n            return 0;\n        }\n    }\n    verdict(\"WA\", \"no final answer\");\n    return 0;\n}\n",
+  "mediator_source": "",
+  "description": "## 题目描述\n这是一个交互题。给定区间 `[l, r]`，存在一个隐藏数字 `x`，满足 $l \\le x \\le r$。\n\n交互器会先给你的程序输入：\n\n```text\nl r\n```\n\n你可以输出：\n\n```text\n? y\n```\n\n来询问 `x` 和 `y` 的关系。交互器返回：\n\n- `-1`：表示 `x > y`\n- `0`：表示 `x = y`\n- `1`：表示 `x < y`\n\n当你确定答案后，输出：\n\n```text\n! y\n```\n\n若 `y = x`，则通过。\n\n## 限制\n询问次数最多 `100` 次。\n\n## 提示\n使用二分即可。\n注意 `?` 和 `!` 与数字中间有个空格。\n每次询问和确定答案后，都要使用`cout.flush();` `cout<<flush` `cout<<endl`等方式刷新缓冲区。\n\n### 样例 1 的一种可能的交互过程：\n你的程序：\n```cpp\n// ...\ncin >> l >> r;\nwhile(is_something){\n    // ...\n    cout << \"?\" << \" \" << myquery << endl;\n    cin>>res;\n}\n// ...\ncout << \"!\" << \" \" << myans << endl;\nreturn 0;\n```\n输入和输出：\n```text\n7 12\n> ? 9\n-1\n> ? 11\n1\n> ? 10\n0\n> ! 10\n```\n>其中以 '>' 开头的行代表你的输出。其余行代表交互器的输出，也是你的输入。\n你每次输出完后，交互器会直接收到你的输出，并且在你发出的是询问时，向你的程序直接输出一个该询问的答案。\n在你输出`! 10`后，交互器比对你的输出和答案发现相等，于是判断该样例通过。",
+  "cases": [
+    {
+      "input": "7 12\n",
+      "output": "10\n",
+      "id": 704
+    },
+    {
+      "input": "10 99\n",
+      "output": "42\n",
+      "id": 705
+    },
+    {
+      "input": "123 987654321\n",
+      "output": "123456789\n",
+      "id": 706
+    },
+    {
+      "input": "2 999999937\n",
+      "output": "777777777\n",
+      "id": 707
+    },
+    {
+      "input": "500000000 999999999\n",
+      "output": "876543210\n",
+      "id": 708
+    },
+    {
+      "input": "2 100\n",
+      "output": "35\n",
+      "id": 709
+    }
+  ]
+}

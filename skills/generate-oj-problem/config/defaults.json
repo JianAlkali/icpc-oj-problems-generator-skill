@@ -1,0 +1,302 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "skill_name": "generate-oj-problem",
+  "version": 1,
+  "language": {
+    "statement": "zh-CN",
+    "code": "cpp17",
+    "json_encoding": "utf-8"
+  },
+  "authoring_schema_policy": {
+    "schema": "aoj",
+    "case_id": "ignore_if_present",
+    "tags_type": "array",
+    "judge_modes": ["batch", "interactive", "protocol"],
+    "checker_types": ["token", "exact", "custom"],
+    "required_common_fields": [
+      "title",
+      "tags",
+      "difficulty",
+      "time_limit_s",
+      "memory_limit_mb",
+      "visible_sample_count",
+      "judge_mode",
+      "checker_type",
+      "description",
+      "cases"
+    ],
+    "source_fields": ["checker_source", "interactor_source", "mediator_source"],
+    "legacy_output_aliases": ["answer", "expected_output"],
+    "rule": "AOJ JSON is UTF-8, Markdown and LaTeX are supported. cases[*].id is ignored because it is server-owned. Batch/token is the default, custom checker requires checker_source, interactive requires interactor_source, protocol requires mediator_source."
+  },
+  "product_policy": {
+    "mode": "aoj_json",
+    "allowed_modes": ["aoj_json", "split_files"],
+    "artifacts_dir": "artifacts",
+    "archive_dir": "archive",
+    "process_dir_name": "process",
+    "aoj_json": {
+      "output_file": "problem.json",
+      "rule": "Produce one AOJ-compatible JSON file containing statement, judge pipeline fields, source fields, and cases."
+    },
+    "split_files": {
+      "statement_file": "statement.md",
+      "metadata_file": "metadata.json",
+      "tests_dir": "tests",
+      "sources_dir": "sources",
+      "rule": "Produce separate statement.md, metadata.json, source files, and numbered .in/.out files."
+    }
+  },
+  "statement_format_policy": {
+    "markdown": "support",
+    "latex": "support",
+    "allowed_values": ["support", "forbid"],
+    "prefer_when_supported": true,
+    "rule": "When supported, write the description field as Markdown and use LaTeX for formulas, variables, constraints, sums, recurrences, and comparisons where it improves precision."
+  },
+  "multi_test_policy": {
+    "mode": "recommend",
+    "allowed_values": ["must", "recommend", "auto", "forbid"],
+    "default_if_unspecified": "recommend",
+    "rule": "Prefer T test cases unless the problem stateful interaction, huge single instance format, or platform convention makes multi-test harmful."
+  },
+  "difficulty_policy": {
+    "scale": "cf",
+    "allowed_scales": ["cf", "luogu", "plain", "custom"],
+    "description_json_field": "difficulty",
+    "description_json_output": {
+      "type": "integer",
+      "rule": "The default description.json schema uses an integer difficulty. For non-numeric scales, map the chosen level to its configured numeric representative and mention the textual level only in reports or statement metadata if needed."
+    },
+    "cf": {
+      "type": "integer_rating",
+      "min": 800,
+      "max": 3500,
+      "step": 100,
+      "default": 1500,
+      "levels": {
+        "beginner": 800,
+        "easy": 1000,
+        "medium": 1500,
+        "hard": 2200,
+        "expert": 2600,
+        "legendary": 3000
+      }
+    },
+    "luogu": {
+      "type": "named_level",
+      "default": "普及/提高-",
+      "levels": [
+        {"name": "入门", "numeric": 800},
+        {"name": "普及-", "numeric": 1000},
+        {"name": "普及/提高-", "numeric": 1400},
+        {"name": "普及+/提高", "numeric": 1700},
+        {"name": "提高+/省选-", "numeric": 2100},
+        {"name": "省选/NOI-", "numeric": 2400},
+        {"name": "NOI/NOI+/CTSC", "numeric": 2800}
+      ]
+    },
+    "plain": {
+      "type": "named_level",
+      "default": "中等",
+      "levels": [
+        {"name": "简单", "numeric": 1000},
+        {"name": "中等偏易", "numeric": 1300},
+        {"name": "中等", "numeric": 1500},
+        {"name": "中等偏难", "numeric": 1800},
+        {"name": "困难", "numeric": 2200},
+        {"name": "极难", "numeric": 2600}
+      ]
+    },
+    "custom": {
+      "type": "user_defined",
+      "rule": "If selected, freeze the level names, ordering, numeric mapping, and whether description.json stores numeric or textual values before problem generation."
+    }
+  },
+  "ambiguity_policy": {
+    "mode": "must_ask",
+    "allowed_values": ["must_ask", "recommend_ask", "auto_resolve", "forbid_ask"],
+    "ask_before_problem_generation": true,
+    "freeze_after_resolution": true,
+    "minimum_frozen_items": [
+      "input_format",
+      "output_format",
+      "objective",
+      "constraints",
+      "indexing",
+      "multi_test",
+      "judge_mode",
+      "checker_type",
+      "product_mode",
+      "pipeline_sources",
+      "difficulty_scale",
+      "difficulty_value",
+      "edge_cases",
+      "tie_breaking",
+      "query_semantics"
+    ]
+  },
+  "sample_policy": {
+    "manual_input": "forbid",
+    "manual_output": "forbid",
+    "manual_candidate_input": "allow_only_after_validator_and_solution",
+    "manual_edit_generated_input": "forbid",
+    "manual_edit_generated_output": "forbid",
+    "must_exist_in_testset": true,
+    "must_have_provenance": true,
+    "case_object_allowed_keys": ["input", "output"],
+    "case_object_ignored_keys": ["id"],
+    "provenance_fields": [
+      "case_id",
+      "source",
+      "generator_command",
+      "generator_mode",
+      "generator_args",
+      "solution_command",
+      "timeout_seconds",
+      "input_file",
+      "output_file",
+      "input_sha256",
+      "output_sha256",
+      "created_at_utc"
+    ]
+  },
+  "visible_sample_policy": {
+    "selection": "filter_generated_cases",
+    "manual_visible_samples": "forbid",
+    "visible_cases_are_first_cases": true,
+    "require_filter_before_finalization": true,
+    "default_requirements": [
+      {
+        "name": "nontrivial_size",
+        "enabled_when": "n=1 is a special case and n>1 is valid",
+        "rule": "At least one visible sample must have n>1."
+      },
+      {
+        "name": "both_yes_no",
+        "enabled_when": "The output language contains both YES and NO outcomes",
+        "rule": "Visible samples must include at least one YES case and at least one NO case."
+      },
+      {
+        "name": "each_output_branch",
+        "enabled_when": "The statement defines multiple semantic output branches",
+        "rule": "Visible samples should cover each branch when a small generated case exists."
+      }
+    ],
+    "filter_script": "scripts/select_visible_samples.py",
+    "requirements_file": "sample_requirements.json"
+  },
+  "generator_modes": {
+    "required": ["all", "boundary", "rand", "big", "boundary+big"],
+    "rand_rounds": 10000,
+    "rand_rounds_min": 1000,
+    "rand_rounds_max": 100000,
+    "all_requires_dictionary": true,
+    "all_nonrandom": true
+  },
+  "all_policy": {
+    "coverage": "complete_for_declared_small_domain",
+    "tree_ids": {
+      "default": "labeled_prufer",
+      "also_allow_ordered_rooted_shapes": true,
+      "require_labels_distinct": true,
+      "note": "1-2-3 and 1-3-2 are different whenever labels or ordered adjacency affect the input."
+    },
+    "graph_ids": {
+      "default": "edge_mask_over_ordered_vertex_pairs",
+      "undirected_simple": "mask over pairs (i,j), 1 <= i < j <= n",
+      "directed_simple": "mask over ordered pairs (i,j), i != j"
+    },
+    "query_policy": {
+      "mode": "all_permutations",
+      "rule": "For any problem with queries, all-mode must enumerate every valid query permutation/sequence over the small domain unless a frozen proof states an equivalent complete partition."
+    }
+  },
+  "validation_gates": {
+    "compile_all": "must_pass",
+    "all": "must_pass",
+    "boundary": "must_pass",
+    "rand": "must_pass",
+    "slower_solution": "must_pass",
+    "validator": "must_pass_if_present",
+    "checker": "must_pass_if_present",
+    "interactor": "must_pass_if_present",
+    "mediator": "must_pass_if_present",
+    "allow_formal_generation_before_pass": false
+  },
+  "timeout_policy": {
+    "require_timeout_for_uncertain_runtime": true,
+    "unit": "seconds",
+    "defaults": {
+      "compile_each": 120,
+      "generator_all": 300,
+      "generator_boundary": 60,
+      "generator_rand_each": 30,
+      "generator_big": 300,
+      "generator_boundary_big": 300,
+      "brute_each": 30,
+      "slower_solution_each": 30,
+      "solution_each": 30,
+      "checker_each": 30,
+      "validator_each": 30,
+      "interactor_each": 30,
+      "mediator_each": 30,
+      "stress_total": 3600,
+      "formal_generation_total": 1800
+    },
+    "rule": "Every command whose runtime is data-dependent or unbounded must be launched with an explicit wall-clock timeout. If a timeout is hit, stop the pipeline, preserve the input and logs, shrink the workload or fix the program, then rerun from validation."
+  },
+  "execution_policy": {
+    "direct_program_runs": "use_safe_run",
+    "forbid_bare_run_if_source_reads_input": true,
+    "input_read_patterns": ["cin >>", "scanf(", "getchar(", "getline(cin", "std::getline(cin"],
+    "rule": "If a program reads stdin, every run must provide --input-file or --stdin/pipe through a script, and must include an explicit timeout."
+  },
+  "paths": {
+    "working_dir": ".",
+    "draft_description": "description.draft.json",
+    "final_description": "description.json",
+    "tests_dir": "tests",
+    "tmp_dir": ".tmp",
+    "reports_dir": "reports",
+    "archive_root": "archive"
+  },
+  "cleanup_policy": {
+    "run_only_after_finalization": true,
+    "forbid_unpreserved_files_after_finalization": true,
+    "delete_globs": [
+      ".tmp/**",
+      "*.diff",
+      "*.log",
+      "*.exe",
+      "debug.cpp",
+      "debug.exe",
+      "test_input.txt",
+      "a.out",
+      "*.tmp.in",
+      "*.tmp.out"
+    ],
+    "preserve_globs": [
+      "description.json",
+      "description.draft.json",
+      "brute.cpp",
+      "slower_solution.cpp",
+      "solution.cpp",
+      "generator.cpp",
+      "checker.cpp",
+      "validator.cpp",
+      "interactor.cpp",
+      "mediator.cpp",
+      "stress.cpp",
+      "stress.py",
+      "full_test.py",
+      "tests/**",
+      "reports/**",
+      "provenance.json",
+      "sample_requirements.json",
+      "frozen_spec.md",
+      "artifacts/**",
+      "archive/**"
+    ]
+  }
+}

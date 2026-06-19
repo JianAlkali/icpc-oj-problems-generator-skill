@@ -1,0 +1,47 @@
+{
+  "title": "特判题 - 不相邻排列",
+  "tags": [
+    "特判题",
+    "数学",
+    "构造",
+    "排列",
+    "测试题"
+  ],
+  "difficulty": 800,
+  "time_limit_s": 1,
+  "memory_limit_mb": 256,
+  "visible_sample_count": 2,
+  "judge_mode": "batch",
+  "checker_type": "custom",
+  "checker_source": "#include <bits/stdc++.h>\nusing namespace std;\n\nint main(int argc, char** argv) {\n    if (argc < 4) return 2;\n    ifstream in(argv[1]), out(argv[2]);\n    int n;\n    if (!(in >> n)) return 2;\n    vector<int> a(n);\n    for (int i = 0; i < n; ++i) {\n        if (!(out >> a[i])) return 1;\n    }\n    string extra;\n    if (out >> extra) return 1;\n    vector<int> seen(n + 1, 0);\n    for (int x : a) {\n        if (x < 1 || x > n) return 1;\n        if (seen[x]) return 1;\n        seen[x] = 1;\n    }\n    for (int i = 0; i + 1 < n; ++i) {\n        if (abs(a[i] - a[i + 1]) == 1) return 1;\n    }\n    return 0;\n}\n",
+  "interactor_source": "",
+  "mediator_source": "",
+  "description": "## 题目描述\n给定一个整数 `n`，请输出 `1..n` 的一个排列，使得任意相邻两个数的差的绝对值都不等于 `1`。\n\n## 输入格式\n一行一个整数 `n`。\n\n## 输出格式\n输出 `n` 个整数，表示一个合法排列。\n\n## 数据范围\n$4 \\le n \\le 100$\n\n## 提示\n本题为本站第一道特判题（special judge）",
+  "cases": [
+    {
+      "input": "4\n",
+      "output": "2 4 1 3\n",
+      "id": 671
+    },
+    {
+      "input": "5\n",
+      "output": "2 4 1 3 5\n",
+      "id": 672
+    },
+    {
+      "input": "10\n",
+      "output": "2 4 6 8 10 1 3 5 7 9\n",
+      "id": 673
+    },
+    {
+      "input": "37\n",
+      "output": "2 4 6 8 10 12 14 16 18 20 22 24 26 28 30 32 34 36 1 3 5 7 9 11 13 15 17 19 21 23 25 27 29 31 33 35 37\n",
+      "id": 674
+    },
+    {
+      "input": "100\n",
+      "output": "2 4 6 8 10 12 14 16 18 20 22 24 26 28 30 32 34 36 38 40 42 44 46 48 50 52 54 56 58 60 62 64 66 68 70 72 74 76 78 80 82 84 86 88 90 92 94 96 98 100 1 3 5 7 9 11 13 15 17 19 21 23 25 27 29 31 33 35 37 39 41 43 45 47 49 51 53 55 57 59 61 63 65 67 69 71 73 75 77 79 81 83 85 87 89 91 93 95 97 99\n",
+      "id": 675
+    }
+  ]
+}
