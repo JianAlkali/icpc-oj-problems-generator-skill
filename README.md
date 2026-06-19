@@ -1,6 +1,6 @@
 # Generate OJ Problem Skill
 
-一个用于生成 OJ / ACM / OI 题目的 Codex Skill。它把一个题意灵感转成可验证、可归档、可产出的题目包，默认面向 AOJ JSON 格式，同时支持扩展到其他 OJ 产物格式。
+一个用于生成 OJ / ACM / OI 题目的 Codex Skill。它把一个题意灵感转成可验证、可归档、可产出的题目包，默认面向 [AlkaliOJ / AOJ](https://alkalibase.com/oj) JSON 格式，同时支持扩展到其他 OJ 产物格式。
 
 ## 使用方式
 
@@ -40,6 +40,47 @@ archive/
 - 支持展示样例筛选，避免样例只覆盖平凡情况。
 - 支持 AOJ 单 JSON 产物和分散文件产物。
 - 提供阶段 checkpoint，帮助上下文较小的 Agent 在关键步骤重新读取规则。
+
+## 产物模式
+
+Skill 会先生成统一的过程文件，例如：
+
+```text
+description.json
+tests/*.in
+tests/*.out
+provenance.json
+reports/
+```
+
+然后在最后一步把它们转换到 `artifacts/` 下的目标产物格式。过程文件和最终产物是解耦的，因此可以复用同一套验证、对拍、样例追溯和归档逻辑。
+
+当前内置两种产物模式：
+
+- `aoj_json`：默认模式，生成一个适配 [AlkaliOJ / AOJ](https://alkalibase.com/oj) 的单文件 JSON。
+
+```text
+artifacts/
+  problem.json
+```
+
+- `split_files`：分散文件模式，适合需要单独管理题面、数据和源码的 OJ 或中间转换流程。
+
+```text
+artifacts/
+  statement.md
+  metadata.json
+  tests/
+    01.in
+    01.out
+  sources/
+    checker.cpp
+    interactor.cpp
+    mediator.cpp
+    solution.cpp
+```
+
+通过修改 `config/defaults.json` 中的 `product_policy.mode` 可以切换默认产物模式。
 
 ## 对其他 OJ 的支持
 
