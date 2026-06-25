@@ -73,7 +73,9 @@ Treat every output sample and hidden case as generated evidence, never as prose.
 
 8. `product-archive`: Materialize product and archive.
    - Run `materialize_product.py` to create `artifacts/`.
+   - Run `validate_package.py --require-artifacts` after materialization.
    - Run `archive_problem.py` to create `archive/`.
+   - Run `validate_package.py --require-artifacts --finalized` after archive cleanup.
    - Final result must have two directories in the problem root: `artifacts/` for deliverables and `archive/` for process/evidence.
 
 ## Required Final Report

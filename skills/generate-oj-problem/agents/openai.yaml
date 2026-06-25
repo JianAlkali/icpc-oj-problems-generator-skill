@@ -1,0 +1,7 @@
+interface:
+  display_name: "Generate OJ Problem"
+  short_description: "Rigorous OJ problem generation"
+  default_prompt: "Use $generate-oj-problem to create a validated programming contest problem package from this idea."
+
+policy:
+  allow_implicit_invocation: true

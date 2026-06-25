@@ -65,6 +65,16 @@ def validate_sample_requirements(desc: dict, req_path: Path | None) -> list[str]
     return errors
 
 
+def case_output(case: dict, aliases: set[str]) -> str | None:
+    output_value = case.get("output")
+    if output_value is not None:
+        return output_value
+    for alias in aliases:
+        if alias in case:
+            return case[alias]
+    return None
+
+
 def normalize_case_keys(case: dict, ignored: set[str]) -> set[str]:
     keys = set(case.keys())
     return keys - ignored
@@ -91,6 +101,66 @@ def python_timeout_errors(path: Path, workdir: Path) -> list[str]:
     return errors
 
 
+def validate_case_provenance(desc: dict, prov_cases: list[dict], workdir: Path, aliases: set[str]) -> list[str]:
+    errors = []
+    cases = desc.get("cases", [])
+    if len(prov_cases) != len(cases):
+        errors.append(f"provenance case count {len(prov_cases)} does not match description cases {len(cases)}")
+    for idx, (case, pcase) in enumerate(zip(cases, prov_cases), start=1):
+        case_id = pcase.get("case_id", f"case {idx}")
+        in_file = pcase.get("input_file")
+        out_file = pcase.get("output_file")
+        output_value = case_output(case, aliases)
+        if not in_file or not (workdir / in_file).exists():
+            errors.append(f"missing input file for {case_id}: {in_file}")
+            continue
+        if not out_file or not (workdir / out_file).exists():
+            errors.append(f"missing output file for {case_id}: {out_file}")
+            continue
+        input_text = (workdir / in_file).read_bytes().decode("utf-8")
+        output_text = (workdir / out_file).read_bytes().decode("utf-8")
+        if case.get("input") != input_text:
+            errors.append(f"description input differs from generated file for {case_id}")
+        if output_value != output_text:
+            errors.append(f"description output differs from generated file for {case_id}")
+    return errors
+
+
+def validate_artifacts(desc: dict, config: dict, workdir: Path, aliases: set[str]) -> list[str]:
+    errors = []
+    product = config.get("product_policy", {})
+    artifacts = workdir / product.get("artifacts_dir", "artifacts")
+    mode = product.get("mode", "aoj_json")
+    if mode == "aoj_json":
+        path = artifacts / product.get("aoj_json", {}).get("output_file", "problem.json")
+        if not path.exists():
+            return ["missing AOJ artifact JSON"]
+        artifact = load_json(path)
+        if artifact.get("cases") != [{"input": c.get("input", ""), "output": case_output(c, aliases) or ""} for c in desc.get("cases", [])]:
+            errors.append("AOJ artifact cases differ from description.json")
+    if mode == "split_files":
+        split = product.get("split_files", {})
+        for rel in [
+            split.get("statement_file", "statement.md"),
+            split.get("metadata_file", "metadata.json"),
+        ]:
+            if not (artifacts / rel).exists():
+                errors.append(f"missing split artifact: {rel}")
+        tests = artifacts / split.get("tests_dir", "tests")
+        for idx, case in enumerate(desc.get("cases", []), start=1):
+            stem = f"{idx:02d}"
+            in_path = tests / f"{stem}.in"
+            out_path = tests / f"{stem}.out"
+            if not in_path.exists() or not out_path.exists():
+                errors.append(f"missing split test artifact: {stem}.in/.out")
+                continue
+            if in_path.read_bytes().decode("utf-8") != case.get("input"):
+                errors.append(f"split input artifact differs for case {idx}")
+            if out_path.read_bytes().decode("utf-8") != (case_output(case, aliases) or ""):
+                errors.append(f"split output artifact differs for case {idx}")
+    return errors
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--workdir", default=".")
@@ -99,6 +169,7 @@ def main() -> int:
     ap.add_argument("--provenance", default="provenance.json")
     ap.add_argument("--sample-requirements", default=None)
     ap.add_argument("--require-artifacts", action="store_true")
+    ap.add_argument("--finalized", action="store_true", help="Also enforce cleanup and preserved-file policy.")
     args = ap.parse_args()
 
     workdir = Path(args.workdir).resolve()
@@ -149,12 +220,7 @@ def main() -> int:
             effective = (effective - aliases) | {"output"}
         if effective != allowed_case_keys:
             errors.append(f"case {i} keys must be {sorted(allowed_case_keys)}; ignored keys: {sorted(ignored_case_keys)}")
-        output_value = case.get("output")
-        if output_value is None:
-            for alias in aliases:
-                if alias in case:
-                    output_value = case[alias]
-                    break
+        output_value = case_output(case, aliases)
         if not isinstance(case.get("input"), str) or not isinstance(output_value, str):
             errors.append(f"case {i} input/output must be strings")
 
@@ -166,6 +232,7 @@ def main() -> int:
     if prov_path.exists():
         prov = load_json(prov_path)
         prov_cases = prov if isinstance(prov, list) else prov.get("cases", [])
+        errors.extend(validate_case_provenance(desc, prov_cases, workdir, aliases))
         for pcase in prov_cases:
             for key in config.get("sample_policy", {}).get("provenance_fields", []):
                 if key not in pcase:
@@ -180,35 +247,27 @@ def main() -> int:
         errors.append("missing provenance.json")
 
     if args.require_artifacts:
-        product = config.get("product_policy", {})
-        artifacts = workdir / product.get("artifacts_dir", "artifacts")
-        mode = product.get("mode", "aoj_json")
-        if mode == "aoj_json" and not (artifacts / product.get("aoj_json", {}).get("output_file", "problem.json")).exists():
-            errors.append("missing AOJ artifact JSON")
-        if mode == "split_files":
-            for rel in [
-                product.get("split_files", {}).get("statement_file", "statement.md"),
-                product.get("split_files", {}).get("metadata_file", "metadata.json"),
-            ]:
-                if not (artifacts / rel).exists():
-                    errors.append(f"missing split artifact: {rel}")
+        errors.extend(validate_artifacts(desc, config, workdir, aliases))
 
     req_path = (workdir / args.sample_requirements) if args.sample_requirements else None
     errors.extend(validate_sample_requirements(desc, req_path))
 
-    delete_globs = config.get("cleanup_policy", {}).get("delete_globs", [])
-    preserve_globs = config.get("cleanup_policy", {}).get("preserve_globs", [])
-    forbid_unpreserved = config.get("cleanup_policy", {}).get("forbid_unpreserved_files_after_finalization", False)
     for path in workdir.rglob("*"):
-        if not path.is_file():
-            continue
-        rel = path.relative_to(workdir)
-        if match_any(rel, delete_globs):
-            errors.append(f"temporary/deletable artifact remains: {rel}")
-        if path.suffix == ".py":
+        if path.is_file() and path.suffix == ".py":
             errors.extend(python_timeout_errors(path, workdir))
-        if forbid_unpreserved and not match_any(rel, preserve_globs) and not match_any(rel, delete_globs):
-            errors.append(f"unpreserved artifact remains in final package: {rel}")
+
+    if args.finalized:
+        delete_globs = config.get("cleanup_policy", {}).get("delete_globs", [])
+        preserve_globs = config.get("cleanup_policy", {}).get("preserve_globs", [])
+        forbid_unpreserved = config.get("cleanup_policy", {}).get("forbid_unpreserved_files_after_finalization", False)
+        for path in workdir.rglob("*"):
+            if not path.is_file():
+                continue
+            rel = path.relative_to(workdir)
+            if match_any(rel, delete_globs):
+                errors.append(f"temporary/deletable artifact remains: {rel}")
+            if forbid_unpreserved and not match_any(rel, preserve_globs) and not match_any(rel, delete_globs):
+                errors.append(f"unpreserved artifact remains in final package: {rel}")
 
     if errors:
         print("PACKAGE_VALIDATION: FAIL")

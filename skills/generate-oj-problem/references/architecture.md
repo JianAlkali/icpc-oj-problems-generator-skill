@@ -60,5 +60,7 @@ python <skill>/scripts/generate_cases.py --workdir . --draft description.draft.j
 python <skill>/scripts/select_visible_samples.py --workdir . --description description.json --requirements sample_requirements.json
 python <skill>/scripts/validate_package.py --workdir . --config <skill>/config/defaults.json --sample-requirements sample_requirements.json
 python <skill>/scripts/materialize_product.py --workdir . --config <skill>/config/defaults.json --mode aoj_json
-python <skill>/scripts/archive_problem.py --workdir . --archive-root archive --slug process --finalized
+python <skill>/scripts/validate_package.py --workdir . --config <skill>/config/defaults.json --sample-requirements sample_requirements.json --require-artifacts
+python <skill>/scripts/archive_problem.py --workdir . --config <skill>/config/defaults.json --archive-root archive --slug process --finalized
+python <skill>/scripts/validate_package.py --workdir . --config <skill>/config/defaults.json --sample-requirements sample_requirements.json --require-artifacts --finalized
 ```

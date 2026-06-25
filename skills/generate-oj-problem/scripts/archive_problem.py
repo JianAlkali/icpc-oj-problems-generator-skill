@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import fnmatch
+import json
 import shutil
 from pathlib import Path
 
@@ -29,7 +30,27 @@ PRESERVE = [
     "reports/*",
 ]
 
-DELETE = [".tmp", "*.diff", "*.log", "*.exe", "a.out", "*.tmp.in", "*.tmp.out"]
+DELETE = [
+    ".tmp",
+    "*.diff",
+    "*.log",
+    "*.exe",
+    "generator",
+    "solution",
+    "brute",
+    "slower_solution",
+    "checker",
+    "validator",
+    "interactor",
+    "mediator",
+    "a.out",
+    "*.tmp.in",
+    "*.tmp.out",
+]
+
+
+def load_json(path: Path) -> dict:
+    return json.loads(path.read_text(encoding="utf-8"))
 
 
 def matches(path: Path, patterns: list[str]) -> bool:
@@ -37,9 +58,17 @@ def matches(path: Path, patterns: list[str]) -> bool:
     return any(fnmatch.fnmatch(s, p) or fnmatch.fnmatch(path.name, p) for p in patterns)
 
 
+def should_delete(item: Path, workdir: Path, patterns: list[str]) -> bool:
+    rel = item.relative_to(workdir)
+    if matches(rel, patterns):
+        return True
+    return item.is_dir() and any(matches(child.relative_to(workdir), patterns) for child in item.rglob("*"))
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--workdir", default=".")
+    ap.add_argument("--config", default=None)
     ap.add_argument("--archive-root", default="archive")
     ap.add_argument("--slug", default="process")
     ap.add_argument("--finalized", action="store_true", help="Required safety acknowledgement.")
@@ -49,6 +78,14 @@ def main() -> int:
         raise SystemExit("Refusing to archive before --finalized is supplied.")
 
     workdir = Path(args.workdir).resolve()
+    config = load_json(Path(args.config)) if args.config else {}
+    cleanup = config.get("cleanup_policy", {})
+    product = config.get("product_policy", {})
+    preserve = cleanup.get("preserve_globs", PRESERVE)
+    delete = cleanup.get("delete_globs", DELETE)
+    artifacts_name = product.get("artifacts_dir", "artifacts")
+    archive_name = args.archive_root
+
     required = ["description.json", "provenance.json"]
     missing = [p for p in required if not (workdir / p).exists()]
     if not ((workdir / "reports" / "validation_report.json").exists() or (workdir / "reports" / "validation_report.md").exists()):
@@ -57,8 +94,7 @@ def main() -> int:
         raise SystemExit(f"Refusing to archive; missing final files: {missing}")
 
     for item in list(workdir.iterdir()):
-        rel = item.relative_to(workdir)
-        if matches(rel, DELETE):
+        if should_delete(item, workdir, delete):
             if item.is_dir():
                 shutil.rmtree(item)
             else:
@@ -70,9 +106,9 @@ def main() -> int:
         if path.is_dir():
             continue
         rel = path.relative_to(workdir)
-        if rel.parts and rel.parts[0] in {args.archive_root, "artifacts"}:
+        if rel.parts and rel.parts[0] in {archive_name, artifacts_name}:
             continue
-        if matches(rel, PRESERVE):
+        if matches(rel, preserve):
             target = archive_dir / rel
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(path, target)
