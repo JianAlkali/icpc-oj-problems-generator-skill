@@ -131,13 +131,34 @@ def validate_artifacts(desc: dict, config: dict, workdir: Path, aliases: set[str
     product = config.get("product_policy", {})
     artifacts = workdir / product.get("artifacts_dir", "artifacts")
     mode = product.get("mode", "aoj_json")
+    package_path = artifacts / product.get("package_file", "package.json")
+    expected_cases = [{"input": c.get("input", ""), "output": case_output(c, aliases) or ""} for c in desc.get("cases", [])]
+    if not package_path.exists():
+        errors.append("missing universal package artifact")
+    else:
+        package = load_json(package_path)
+        if package.get("cases") != expected_cases:
+            errors.append("universal package cases differ from description.json")
+        judge = package.get("judge", {})
+        if judge.get("mode") != desc.get("judge_mode", "batch"):
+            errors.append("universal package judge mode differs from description.json")
+        if judge.get("checker_type") != desc.get("checker_type", "token"):
+            errors.append("universal package checker type differs from description.json")
     if mode == "aoj_json":
-        path = artifacts / product.get("aoj_json", {}).get("output_file", "problem.json")
+        aoj = product.get("aoj_json", {})
+        path = artifacts / aoj.get("output_file", "problem.json")
         if not path.exists():
             return ["missing AOJ artifact JSON"]
         artifact = load_json(path)
-        if artifact.get("cases") != [{"input": c.get("input", ""), "output": case_output(c, aliases) or ""} for c in desc.get("cases", [])]:
+        if artifact.get("cases") != expected_cases:
             errors.append("AOJ artifact cases differ from description.json")
+        platform_output = aoj.get("platform_output_file")
+        if platform_output:
+            platform_path = artifacts / platform_output
+            if not platform_path.exists():
+                errors.append(f"missing AOJ platform artifact: {platform_output}")
+            elif load_json(platform_path).get("cases") != expected_cases:
+                errors.append("AOJ platform artifact cases differ from description.json")
     if mode == "split_files":
         split = product.get("split_files", {})
         for rel in [

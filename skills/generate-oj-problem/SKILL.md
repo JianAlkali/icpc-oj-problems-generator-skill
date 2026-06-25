@@ -13,6 +13,7 @@ Treat every output sample and hidden case as generated evidence, never as prose.
 
 - Read `config/defaults.json` first. It defines AOJ schema, judge modes, product modes, Markdown/LaTeX support, ambiguity handling, validation, sample selection, cleanup, artifacts, and archive paths.
 - Read `references/oj-authoring.md` when choosing `judge_mode`, `checker_type`, `checker_source`, `interactor_source`, or `mediator_source`.
+- Read `references/platform-adapters.md` when choosing a target OJ platform, changing artifact layout, or adding a checker/interactor/protocol contract.
 - Read `references/strictness.md` when designing generators, samples, visible samples, validation, or manual candidates.
 - Read `references/architecture.md` when creating directories, materializing artifacts, or archiving process evidence.
 - Re-read `references/checkpoints.md` before each major phase. If context is tight, run `scripts/show_step.py --step <name>` immediately before the phase.
@@ -72,7 +73,7 @@ Treat every output sample and hidden case as generated evidence, never as prose.
    - Run `validate_package.py` and fix every failure.
 
 8. `product-archive`: Materialize product and archive.
-   - Run `materialize_product.py` to create `artifacts/`.
+   - Run `materialize_product.py` to create `artifacts/package.json` and platform artifacts.
    - Run `validate_package.py --require-artifacts` after materialization.
    - Run `archive_problem.py` to create `archive/`.
    - Run `validate_package.py --require-artifacts --finalized` after archive cleanup.

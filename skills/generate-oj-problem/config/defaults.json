@@ -32,11 +32,15 @@
   "product_policy": {
     "mode": "aoj_json",
     "allowed_modes": ["aoj_json", "split_files"],
+    "platform": "alkalibase-aoj",
+    "platform_adapter": "platforms/alkalibase-aoj.json",
     "artifacts_dir": "artifacts",
+    "package_file": "package.json",
     "archive_dir": "archive",
     "process_dir_name": "process",
     "aoj_json": {
       "output_file": "problem.json",
+      "platform_output_file": "aoj/problem.json",
       "rule": "Produce one AOJ-compatible JSON file containing statement, judge pipeline fields, source fields, and cases."
     },
     "split_files": {

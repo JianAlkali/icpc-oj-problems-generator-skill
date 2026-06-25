@@ -35,6 +35,50 @@ def normalize_cases(desc: dict) -> dict:
     return out
 
 
+def normalized_cases(desc: dict) -> list[dict]:
+    cases = []
+    for case in desc.get("cases", []):
+        output = case.get("output", case.get("answer", case.get("expected_output", "")))
+        cases.append({"input": case.get("input", ""), "output": output})
+    return cases
+
+
+def resolve_adapter_path(config_path: Path | None, adapter_value: str | None) -> Path | None:
+    if not adapter_value:
+        return None
+    path = Path(adapter_value)
+    if path.is_absolute():
+        return path
+    if config_path is not None:
+        return (config_path.parent / path).resolve()
+    return path.resolve()
+
+
+def build_universal_package(desc: dict, adapter: dict, product: dict) -> dict:
+    return {
+        "schema_version": 1,
+        "platform": adapter.get("platform", product.get("platform", "generic")),
+        "title": desc.get("title", ""),
+        "tags": desc.get("tags", []),
+        "difficulty": desc.get("difficulty"),
+        "time_limit_s": desc.get("time_limit_s"),
+        "memory_limit_mb": desc.get("memory_limit_mb"),
+        "visible_sample_count": desc.get("visible_sample_count", 0),
+        "statement": desc.get("description", ""),
+        "judge": {
+            "mode": desc.get("judge_mode", "batch"),
+            "checker_type": desc.get("checker_type", "token"),
+            "checker_source": desc.get("checker_source", ""),
+            "interactor_source": desc.get("interactor_source", ""),
+            "mediator_source": desc.get("mediator_source", ""),
+            "contracts": adapter.get("contracts", {}),
+        },
+        "runner": adapter.get("runner", {}),
+        "cases": normalized_cases(desc),
+        "artifacts": adapter.get("artifacts", {}),
+    }
+
+
 def hydrate_source_fields(workdir: Path, desc: dict) -> dict:
     out = dict(desc)
     for field, filename in SOURCE_MAP.items():
@@ -45,6 +89,11 @@ def hydrate_source_fields(workdir: Path, desc: dict) -> dict:
 
 def materialize_aoj(workdir: Path, artifacts: Path, desc: dict, output_file: str) -> None:
     write_json(artifacts / output_file, normalize_cases(desc))
+
+
+def materialize_aoj_platform(workdir: Path, artifacts: Path, desc: dict, output_file: str | None) -> None:
+    if output_file:
+        write_json(artifacts / output_file, normalize_cases(desc))
 
 
 def materialize_split(workdir: Path, artifacts: Path, desc: dict, split: dict) -> None:
@@ -81,13 +130,17 @@ def main() -> int:
     ap.add_argument("--config", default=None)
     ap.add_argument("--description", default="description.json")
     ap.add_argument("--mode", choices=["aoj_json", "split_files"], default=None)
+    ap.add_argument("--platform-adapter", default=None)
     ap.add_argument("--artifacts-dir", default=None)
     ap.add_argument("--clean", action="store_true")
     args = ap.parse_args()
 
     workdir = Path(args.workdir).resolve()
-    config = load_json(Path(args.config)) if args.config else {}
+    config_path = Path(args.config).resolve() if args.config else None
+    config = load_json(config_path) if config_path else {}
     product = config.get("product_policy", {})
+    adapter_path = resolve_adapter_path(config_path, args.platform_adapter or product.get("platform_adapter"))
+    adapter = load_json(adapter_path) if adapter_path and adapter_path.exists() else {}
     mode = args.mode or product.get("mode", "aoj_json")
     artifacts = workdir / (args.artifacts_dir or product.get("artifacts_dir", "artifacts"))
     if args.clean and artifacts.exists():
@@ -95,8 +148,11 @@ def main() -> int:
     artifacts.mkdir(parents=True, exist_ok=True)
 
     desc = hydrate_source_fields(workdir, load_json(workdir / args.description))
+    write_json(artifacts / product.get("package_file", "package.json"), build_universal_package(desc, adapter, product))
     if mode == "aoj_json":
         materialize_aoj(workdir, artifacts, desc, product.get("aoj_json", {}).get("output_file", "problem.json"))
+        materialize_aoj_platform(workdir, artifacts, desc, product.get("aoj_json", {}).get("platform_output_file"))
+        materialize_aoj_platform(workdir, artifacts, desc, adapter.get("artifacts", {}).get("platform_aoj_json"))
     else:
         materialize_split(workdir, artifacts, desc, product.get("split_files", {}))
     print(f"ARTIFACTS: {artifacts} ({mode})")

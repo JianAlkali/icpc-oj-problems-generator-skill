@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "platform": "alkalibase-aoj",
+  "runner": {
+    "language": "cpp20",
+    "compile": "g++ -std=c++20 -O2 -pipe",
+    "sandbox": "lima_nerdctl"
+  },
+  "contracts": {
+    "custom_checker": {
+      "argv": ["input_file", "user_output_file", "answer_file"],
+      "exit_status": {
+        "0": "AC",
+        "1": "WA",
+        "other": "JE"
+      }
+    },
+    "interactive": {
+      "argv": ["input_file", "answer_file"],
+      "communication": "stdin_stdout_bidirectional",
+      "verdict_env": "ALKALIBASE_VERDICT_FILE",
+      "verdict_json": {
+        "status": ["AC", "WA"],
+        "detail": "optional string"
+      },
+      "judge_error_when": ["timeout", "crash", "missing_verdict", "invalid_verdict_json", "invalid_status"]
+    },
+    "protocol": {
+      "mediator_argv": ["input_file", "first_user_output_file", "second_input_file_path"],
+      "second_input_output": "stdout_or_second_input_file_path",
+      "mediator_exit_status": {
+        "0": "continue",
+        "1": "WA",
+        "other": "JE"
+      },
+      "second_run_checker": "selected checker"
+    }
+  },
+  "artifacts": {
+    "universal_package": "package.json",
+    "legacy_aoj_json": "problem.json",
+    "platform_aoj_json": "aoj/problem.json"
+  }
+}
