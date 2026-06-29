@@ -30,7 +30,7 @@
     "rule": "AOJ JSON is UTF-8, Markdown and LaTeX are supported. cases[*].id is ignored because it is server-owned. Batch/token is the default, custom checker requires checker_source, interactive requires interactor_source, protocol requires mediator_source."
   },
   "product_policy": {
-    "mode": "aoj_json",
+    "mode": "split_files",
     "allowed_modes": ["aoj_json", "split_files"],
     "platform": "alkalibase-aoj",
     "platform_adapter": "platforms/alkalibase-aoj.json",

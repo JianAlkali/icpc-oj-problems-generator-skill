@@ -111,8 +111,8 @@ def materialize_split(workdir: Path, artifacts: Path, desc: dict, split: dict) -
     for idx, case in enumerate(desc.get("cases", []), start=1):
         stem = f"{idx:02d}"
         output = case.get("output", case.get("answer", case.get("expected_output", "")))
-        (tests_dir / f"{stem}.in").write_text(case.get("input", ""), encoding="utf-8")
-        (tests_dir / f"{stem}.out").write_text(output, encoding="utf-8")
+        (tests_dir / f"{stem}.in").write_bytes(case.get("input", "").encode("utf-8"))
+        (tests_dir / f"{stem}.out").write_bytes(output.encode("utf-8"))
 
     for field, filename in SOURCE_MAP.items():
         source = desc.get(field, "")

@@ -112,7 +112,7 @@ int main() {
                 "--config",
                 str(CONFIG),
                 "--mode",
-                "aoj_json",
+                "split_files",
             ],
             workdir,
         )

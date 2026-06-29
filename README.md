@@ -1,6 +1,6 @@
 # Generate OJ Problem Skill
 
-一个用于生成 OJ / ACM / OI 题目的 Codex Skill。它把一个题意灵感转成可验证、可归档、可产出的题目包，默认面向 [AlkaliOJ / AOJ](https://alkalibase.com/oj) JSON 格式，同时支持扩展到其他 OJ 产物格式。
+一个用于生成 OJ / ACM / OI 题目的 Codex Skill。它把一个题意灵感转成可验证、可归档、可产出的题目包。第一版 release 默认采用分散产物模式，同时保留 [AlkaliOJ / AOJ](https://alkalibase.com/oj) adapter 和 AOJ JSON 兼容输出能力。
 
 ## 使用方式
 
@@ -11,12 +11,14 @@
 出一道珂朵莉树板子题，区间第 k 小、区间修改之类都给它整上。
 ```
 
-3. 等待生成完成。默认 AOJ 产物模式下，会同时生成平台无关包和 AOJ 兼容产物：
+3. 等待生成完成。默认分散产物模式下，会同时生成平台无关包、题面、元数据、测试数据和源码：
 
 ```text
 artifacts/package.json
-artifacts/problem.json
-artifacts/aoj/problem.json
+artifacts/statement.md
+artifacts/metadata.json
+artifacts/tests/
+artifacts/sources/
 ```
 
 过程文件、验证报告、源码、数据生成记录等会归档在：
@@ -74,19 +76,7 @@ artifacts/
 
 当前内置两种产物模式：
 
-- `aoj_json`：默认模式，生成一个适配 [AlkaliOJ / AOJ](https://alkalibase.com/oj) 的单文件 JSON。
-
-```text
-artifacts/
-  package.json
-  problem.json
-  aoj/
-    problem.json
-```
-
-其中 `artifacts/problem.json` 是兼容旧上传流程的 AOJ JSON，`artifacts/aoj/problem.json` 是 `alkalibase-aoj` adapter 下的平台产物。
-
-- `split_files`：分散文件模式，适合需要单独管理题面、数据和源码的 OJ 或中间转换流程。
+- `split_files`：默认模式，适合需要单独管理题面、数据和源码的 OJ 或中间转换流程。
 
 ```text
 artifacts/
@@ -102,6 +92,18 @@ artifacts/
     mediator.cpp
     solution.cpp
 ```
+
+- `aoj_json`：生成一个适配 [AlkaliOJ / AOJ](https://alkalibase.com/oj) 的单文件 JSON。
+
+```text
+artifacts/
+  package.json
+  problem.json
+  aoj/
+    problem.json
+```
+
+其中 `artifacts/problem.json` 是兼容旧上传流程的 AOJ JSON，`artifacts/aoj/problem.json` 是 `alkalibase-aoj` adapter 下的平台产物。
 
 通过修改 `config/defaults.json` 中的 `product_policy.mode` 可以切换默认产物模式。
 

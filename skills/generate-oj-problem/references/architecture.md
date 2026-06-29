@@ -63,7 +63,7 @@ python <skill>/scripts/stress.py --workdir . --rounds 10000 --timeout 30
 python <skill>/scripts/generate_cases.py --workdir . --draft description.draft.json --out description.json --visible 2 --timeout 60 --case all --case boundary --case rand:1 --case big --case boundary+big
 python <skill>/scripts/select_visible_samples.py --workdir . --description description.json --requirements sample_requirements.json
 python <skill>/scripts/validate_package.py --workdir . --config <skill>/config/defaults.json --sample-requirements sample_requirements.json
-python <skill>/scripts/materialize_product.py --workdir . --config <skill>/config/defaults.json --mode aoj_json --platform-adapter <skill>/config/platforms/alkalibase-aoj.json
+python <skill>/scripts/materialize_product.py --workdir . --config <skill>/config/defaults.json --mode split_files --platform-adapter <skill>/config/platforms/alkalibase-aoj.json
 python <skill>/scripts/validate_package.py --workdir . --config <skill>/config/defaults.json --sample-requirements sample_requirements.json --require-artifacts
 python <skill>/scripts/archive_problem.py --workdir . --config <skill>/config/defaults.json --archive-root archive --slug process --finalized
 python <skill>/scripts/validate_package.py --workdir . --config <skill>/config/defaults.json --sample-requirements sample_requirements.json --require-artifacts --finalized

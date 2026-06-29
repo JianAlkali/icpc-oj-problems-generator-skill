@@ -36,7 +36,7 @@ Treat every output sample and hidden case as generated evidence, never as prose.
    - Choose `judge_mode`: `batch`, `interactive`, or `protocol`.
    - For special judge, use `judge_mode: batch` and `checker_type: custom`.
    - Choose `checker_type`: `token`, `exact`, or `custom`.
-   - Choose product mode: `aoj_json` for one AOJ-compatible JSON, or `split_files` for `statement.md`, metadata, tests, and sources.
+   - Choose product mode: default `split_files` for `statement.md`, metadata, tests, and sources; use `aoj_json` when a one-file AOJ-compatible JSON is required.
    - Freeze input/output, objective, constraints, indexing, tie-breaking, query semantics, multi-test policy, difficulty scale, product mode, and pipeline sources before generation.
 
 2. `draft`: Create `description.draft.json`.
